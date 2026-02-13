@@ -2,7 +2,13 @@
 
 import { useState } from "react"
 
-export function WalkmanWheel() {
+interface WalkmanWheelProps {
+  onPlayPause?: () => void
+  onSeekLeft?: () => void
+  onSeekRight?: () => void
+}
+
+export function WalkmanWheel({ onPlayPause, onSeekLeft, onSeekRight }: WalkmanWheelProps) {
   const [activeDir, setActiveDir] = useState<string | null>(null)
   const [centerPressed, setCenterPressed] = useState(false)
 
@@ -12,8 +18,10 @@ export function WalkmanWheel() {
       <div
         className="absolute inset-0 rounded-full"
         style={{
-          background: "conic-gradient(from 0deg, #c8c8c8 0deg, #e8e8e8 15deg, #a0a0a0 30deg, #d4d4d4 60deg, #b8b8b8 90deg, #e0e0e0 120deg, #a8a8a8 150deg, #d0d0d0 180deg, #c0c0c0 210deg, #e4e4e4 240deg, #a4a4a4 270deg, #d8d8d8 300deg, #b4b4b4 330deg, #c8c8c8 360deg)",
-          boxShadow: "0 2px 6px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,0,0,0.15), inset 0 1px 2px rgba(255,255,255,0.3)",
+          background:
+            "conic-gradient(from 0deg, #c8c8c8 0deg, #e8e8e8 15deg, #a0a0a0 30deg, #d4d4d4 60deg, #b8b8b8 90deg, #e0e0e0 120deg, #a8a8a8 150deg, #d0d0d0 180deg, #c0c0c0 210deg, #e4e4e4 240deg, #a4a4a4 270deg, #d8d8d8 300deg, #b4b4b4 330deg, #c8c8c8 360deg)",
+          boxShadow:
+            "0 2px 6px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,0,0,0.15), inset 0 1px 2px rgba(255,255,255,0.3)",
         }}
       >
         {/* Tick marks around the bezel */}
@@ -50,10 +58,10 @@ export function WalkmanWheel() {
           width: "108px",
           height: "108px",
           background: "linear-gradient(145deg, #d8d8d8, #a8a8a8)",
-          boxShadow: "inset 0 2px 4px rgba(0,0,0,0.2), inset 0 -1px 2px rgba(255,255,255,0.3), 0 0 0 1px rgba(0,0,0,0.1)",
+          boxShadow:
+            "inset 0 2px 4px rgba(0,0,0,0.2), inset 0 -1px 2px rgba(255,255,255,0.3), 0 0 0 1px rgba(0,0,0,0.1)",
         }}
       >
-        {/* Directional button zones */}
         {/* Up */}
         <button
           className="absolute top-[4px] left-1/2 -translate-x-1/2 w-[28px] h-[28px] flex items-center justify-center rounded-full transition-all cursor-pointer border-0 bg-transparent"
@@ -86,16 +94,19 @@ export function WalkmanWheel() {
           </svg>
         </button>
 
-        {/* Left (rewind) */}
+        {/* Left (rewind / seek -10s) */}
         <button
           className="absolute left-[4px] top-1/2 -translate-y-1/2 w-[28px] h-[28px] flex items-center justify-center rounded-full transition-all cursor-pointer border-0 bg-transparent"
           style={{
             background: activeDir === "left" ? "rgba(0,0,0,0.08)" : "transparent",
           }}
-          onPointerDown={() => setActiveDir("left")}
+          onPointerDown={() => {
+            setActiveDir("left")
+            onSeekLeft?.()
+          }}
           onPointerUp={() => setActiveDir(null)}
           onPointerLeave={() => setActiveDir(null)}
-          aria-label="Rewind"
+          aria-label="Seek back 10 seconds"
         >
           <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
             <path d="M6 1L1 5L6 9" stroke="#555" strokeWidth="1.3" fill="none" />
@@ -103,16 +114,19 @@ export function WalkmanWheel() {
           </svg>
         </button>
 
-        {/* Right (forward) */}
+        {/* Right (forward / seek +10s) */}
         <button
           className="absolute right-[4px] top-1/2 -translate-y-1/2 w-[28px] h-[28px] flex items-center justify-center rounded-full transition-all cursor-pointer border-0 bg-transparent"
           style={{
             background: activeDir === "right" ? "rgba(0,0,0,0.08)" : "transparent",
           }}
-          onPointerDown={() => setActiveDir("right")}
+          onPointerDown={() => {
+            setActiveDir("right")
+            onSeekRight?.()
+          }}
           onPointerUp={() => setActiveDir(null)}
           onPointerLeave={() => setActiveDir(null)}
-          aria-label="Forward"
+          aria-label="Seek forward 10 seconds"
         >
           <svg width="12" height="10" viewBox="0 0 12 10" fill="none">
             <path d="M1 1L6 5L1 9" stroke="#555" strokeWidth="1.3" fill="none" />
@@ -121,7 +135,7 @@ export function WalkmanWheel() {
         </button>
       </div>
 
-      {/* Center play/enter button */}
+      {/* Center play/pause button */}
       <button
         className="absolute rounded-full flex items-center justify-center cursor-pointer transition-all border-0"
         style={{
@@ -135,9 +149,12 @@ export function WalkmanWheel() {
             : "0 2px 4px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.08), inset 0 1px 2px rgba(255,255,255,0.4)",
         }}
         onPointerDown={() => setCenterPressed(true)}
-        onPointerUp={() => setCenterPressed(false)}
+        onPointerUp={() => {
+          setCenterPressed(false)
+          onPlayPause?.()
+        }}
         onPointerLeave={() => setCenterPressed(false)}
-        aria-label="Play / Enter"
+        aria-label="Play / Pause"
       >
         <svg width="16" height="14" viewBox="0 0 16 14" fill="none">
           {/* Play triangle */}

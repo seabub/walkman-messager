@@ -1,28 +1,100 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 
-export function WalkmanScreen() {
-  const [timer, setTimer] = useState(225) // 3:45 in seconds
-  const [isPlaying, setIsPlaying] = useState(true)
+interface WalkmanScreenProps {
+  discLabel?: string
+  senderName?: string
+  isPlaying?: boolean
+  currentTime?: number
+  duration?: number
+  volume?: number
+  showVolume?: boolean
+  isLocked?: boolean
+  lockFlash?: boolean
+}
 
+function AudioVisualizer({ isPlaying }: { isPlaying: boolean }) {
+  return (
+    <div className="flex items-end gap-[2px] h-[18px]">
+      {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+        <div
+          key={i}
+          className="w-[3px] rounded-[0.5px]"
+          style={{
+            background: "linear-gradient(0deg, #00ddcc, #00ffaa)",
+            height: isPlaying ? undefined : "2px",
+            animation: isPlaying ? `visualizerBar 0.${3 + (i % 4)}s ease-in-out infinite alternate` : "none",
+            animationDelay: `${i * 0.07}s`,
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+function MarqueeText({ text, isPlaying }: { text: string; isPlaying: boolean }) {
+  if (!isPlaying) return null
+  return (
+    <div className="overflow-hidden w-full">
+      <div
+        className="whitespace-nowrap font-walkman text-[8px] text-[#00ddaa] tracking-[0.06em]"
+        style={{
+          animation: "marqueeScroll 6s linear infinite",
+        }}
+      >
+        {text}  &bull;  {text}  &bull;  {text}
+      </div>
+    </div>
+  )
+}
+
+export function WalkmanScreen({
+  discLabel = "Blue SKY",
+  senderName = "Hi-MD Orchestra",
+  isPlaying = false,
+  currentTime = 0,
+  duration = 0,
+  volume = 80,
+  showVolume = false,
+  isLocked = false,
+  lockFlash = false,
+}: WalkmanScreenProps) {
+  const [lockVisible, setLockVisible] = useState(false)
+  const flashRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Flash KEY LOCK text
   useEffect(() => {
-    if (!isPlaying) return
-    const interval = setInterval(() => {
-      setTimer((prev) => prev + 1)
-    }, 1000)
-    return () => clearInterval(interval)
-  }, [isPlaying])
+    if (lockFlash) {
+      let visible = true
+      setLockVisible(true)
+      flashRef.current = setInterval(() => {
+        visible = !visible
+        setLockVisible(visible)
+      }, 200)
+      const timeout = setTimeout(() => {
+        if (flashRef.current) clearInterval(flashRef.current)
+        setLockVisible(false)
+      }, 1200)
+      return () => {
+        if (flashRef.current) clearInterval(flashRef.current)
+        clearTimeout(timeout)
+      }
+    }
+  }, [lockFlash])
 
-  const minutes = String(Math.floor(timer / 60)).padStart(2, "0")
-  const seconds = String(timer % 60).padStart(2, "0")
+  const minutes = String(Math.floor(currentTime / 60)).padStart(2, "0")
+  const seconds = String(Math.floor(currentTime) % 60).padStart(2, "0")
+  const progress = duration > 0 ? (currentTime / duration) * 100 : 0
 
   return (
     <div className="walkman-screen relative w-full aspect-[16/10] rounded-[3px] overflow-hidden select-none">
       {/* Screen glass overlay */}
-      <div className="absolute inset-0 z-10 rounded-[3px] pointer-events-none"
+      <div
+        className="absolute inset-0 z-10 rounded-[3px] pointer-events-none"
         style={{
-          background: "linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.03) 100%)",
+          background:
+            "linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.03) 100%)",
         }}
       />
 
@@ -31,15 +103,22 @@ export function WalkmanScreen() {
 
       {/* Content */}
       <div className="relative z-[5] flex flex-col h-full p-[6px] gap-[2px]">
-        {/* Top row: track info + album art */}
+        {/* Top row: track info + visualizer */}
         <div className="flex items-start justify-between">
           {/* Left: Track number and time */}
           <div className="flex flex-col">
             <div className="flex items-center gap-[6px]">
-              {/* Play icon */}
-              <svg width="8" height="9" viewBox="0 0 8 9" fill="none">
-                <path d="M1 1L7 4.5L1 8V1Z" fill="#00ddaa" />
-              </svg>
+              {/* Play/Pause icon */}
+              {isPlaying ? (
+                <svg width="8" height="9" viewBox="0 0 8 9" fill="none">
+                  <path d="M1 1L7 4.5L1 8V1Z" fill="#00ddaa" />
+                </svg>
+              ) : (
+                <svg width="8" height="9" viewBox="0 0 8 9" fill="none">
+                  <rect x="1" y="1" width="2.5" height="7" fill="#00ddaa" />
+                  <rect x="4.5" y="1" width="2.5" height="7" fill="#00ddaa" />
+                </svg>
+              )}
               <span className="font-walkman text-[13px] text-[#e0e8f0] tracking-[0.1em] leading-none">001</span>
             </div>
             <span className="font-walkman text-[18px] text-[#e0e8f0] tracking-[0.12em] leading-tight mt-[1px]">
@@ -51,30 +130,21 @@ export function WalkmanScreen() {
                 className="h-full rounded-[1px]"
                 style={{
                   background: "linear-gradient(90deg, #00bbaa, #00ddcc)",
-                  width: `${Math.min(((timer - 225) / 180) * 100 + 35, 100)}%`,
-                  transition: "width 1s linear",
+                  width: `${Math.min(progress, 100)}%`,
+                  transition: "width 0.3s linear",
                 }}
               />
             </div>
           </div>
 
-          {/* Right: Album art thumbnail */}
-          <div className="w-[38px] h-[38px] rounded-[2px] overflow-hidden border border-[#1a3040] flex-shrink-0">
-            <div
-              className="w-full h-full"
-              style={{
-                background: "linear-gradient(135deg, #446644 0%, #88aa55 25%, #ddbb77 45%, #cc8866 60%, #885544 80%, #446644 100%)",
-                imageRendering: "pixelated",
-              }}
-            >
-              {/* Stylized pixelated face silhouette */}
-              <svg viewBox="0 0 38 38" className="w-full h-full opacity-70">
-                <ellipse cx="19" cy="14" rx="8" ry="9" fill="#e8c8a0" opacity="0.6" />
-                <ellipse cx="19" cy="30" rx="12" ry="10" fill="#cc8866" opacity="0.4" />
-              </svg>
-            </div>
+          {/* Right: Visualizer or album art */}
+          <div className="w-[38px] h-[38px] rounded-[2px] overflow-hidden border border-[#1a3040] flex-shrink-0 flex items-center justify-center bg-[#0a1018]">
+            <AudioVisualizer isPlaying={isPlaying} />
           </div>
         </div>
+
+        {/* Marquee */}
+        <MarqueeText text="Now Playing..." isPlaying={isPlaying} />
 
         {/* Track title */}
         <div className="flex items-center gap-[4px] mt-[1px]">
@@ -83,7 +153,7 @@ export function WalkmanScreen() {
             <circle cx="5" cy="5" r="1" fill="#00ccbb" />
           </svg>
           <span className="font-walkman text-[12px] text-[#e0e8f0] tracking-[0.05em] leading-none truncate">
-            Blue SKY
+            {discLabel}
           </span>
         </div>
 
@@ -93,7 +163,7 @@ export function WalkmanScreen() {
             <rect x="2" y="2" width="6" height="6" rx="1" stroke="#00ccbb" strokeWidth="1" fill="none" />
           </svg>
           <span className="font-walkman text-[10.5px] text-[#b0c0d0] tracking-[0.04em] leading-none truncate">
-            Hi-MD Orchestra
+            {senderName}
           </span>
         </div>
 
@@ -102,12 +172,11 @@ export function WalkmanScreen() {
           <span className="font-walkman text-[8px] text-[#00ccbb] tracking-[0.06em] px-[3px] py-[1px] border border-[#00ccbb] rounded-[1px] leading-none">
             Hi-MD
           </span>
-          <span className="font-walkman text-[8px] text-[#00ccbb] tracking-[0.04em] leading-none">
-            SHUF
-          </span>
-          <svg width="8" height="6" viewBox="0 0 8 6" fill="none">
-            <path d="M0 3H6M4 1L6 3L4 5" stroke="#00ccbb" strokeWidth="0.8" />
-          </svg>
+          {isLocked && (
+            <span className="font-walkman text-[8px] text-[#ff6644] tracking-[0.04em] leading-none">
+              HOLD
+            </span>
+          )}
           <span className="font-walkman text-[8px] text-[#00ccbb] tracking-[0.04em] leading-none">
             VC
           </span>
@@ -122,6 +191,35 @@ export function WalkmanScreen() {
           </div>
         </div>
       </div>
+
+      {/* Volume overlay */}
+      {showVolume && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0a0e14]/80">
+          <div className="flex flex-col items-center gap-[4px]">
+            <span className="font-walkman text-[10px] text-[#00ddcc] tracking-[0.1em]">VOLUME</span>
+            <div className="flex items-end gap-[2px] h-[20px]">
+              {Array.from({ length: 10 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="w-[6px] rounded-[0.5px]"
+                  style={{
+                    height: `${(i + 1) * 2}px`,
+                    background: i < Math.floor(volume / 10) ? "#00ddcc" : "#1a3858",
+                  }}
+                />
+              ))}
+            </div>
+            <span className="font-walkman text-[14px] text-[#e0e8f0] tracking-[0.1em]">{volume}</span>
+          </div>
+        </div>
+      )}
+
+      {/* KEY LOCK flash overlay */}
+      {lockFlash && lockVisible && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center bg-[#0a0e14]/80">
+          <span className="font-walkman text-[14px] text-[#ff6644] tracking-[0.15em]">KEY LOCK</span>
+        </div>
+      )}
     </div>
   )
 }
