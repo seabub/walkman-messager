@@ -7,7 +7,6 @@ interface StudioOverlayProps {
   onBurn: (disc: WalkmanDisc) => void
 }
 
-// Mac OS 9 "Platinum" font stack
 const macFont = "'Geneva', 'Chicago', 'Charcoal', 'Lucida Grande', 'Helvetica Neue', sans-serif"
 
 function PlatinumInput({
@@ -44,11 +43,13 @@ function PlatinumButton({
   onClick,
   disabled,
   primary,
+  small,
 }: {
   children: React.ReactNode
   onClick?: () => void
   disabled?: boolean
   primary?: boolean
+  small?: boolean
 }) {
   return (
     <button
@@ -57,10 +58,10 @@ function PlatinumButton({
       className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:brightness-90"
       style={{
         fontFamily: macFont,
-        fontSize: "11px",
+        fontSize: small ? "10px" : "11px",
         fontWeight: 600,
         color: "#000",
-        padding: "4px 18px",
+        padding: small ? "2px 10px" : "4px 18px",
         borderRadius: "4px",
         border: "1px solid #888",
         background: "linear-gradient(180deg, #FAFAFA 0%, #E0E0E0 45%, #C8C8C8 55%, #D8D8D8 100%)",
@@ -75,23 +76,46 @@ function PlatinumButton({
 }
 
 export function StudioOverlay({ onBurn }: StudioOverlayProps) {
-  const [youtubeUrl, setYoutubeUrl] = useState("")
-  const [discLabel, setDiscLabel] = useState("")
-  const [senderName, setSenderName] = useState("")
-  const [secretMessage, setSecretMessage] = useState("")
+  const [trackInput, setTrackInput] = useState("")
+  const [playlist, setPlaylist] = useState<string[]>([])
+  const [title, setTitle] = useState("")
+  const [sender, setSender] = useState("")
+  const [message, setMessage] = useState("")
   const [error, setError] = useState("")
   const [isBurning, setIsBurning] = useState(false)
   const [burnProgress, setBurnProgress] = useState(0)
 
-  const handleBurn = useCallback(() => {
+  const addTrack = useCallback(() => {
     setError("")
-    const videoId = extractYouTubeId(youtubeUrl.trim())
+    const videoId = extractYouTubeId(trackInput.trim())
     if (!videoId) {
-      setError("Invalid YouTube URL. Please paste a valid link.")
+      setError("Invalid YouTube URL.")
       return
     }
-    if (!discLabel.trim()) {
-      setError("Please enter a Disc Label.")
+    if (playlist.length >= 10) {
+      setError("Maximum 10 tracks per disc.")
+      return
+    }
+    if (playlist.includes(videoId)) {
+      setError("Track already added.")
+      return
+    }
+    setPlaylist((prev) => [...prev, videoId])
+    setTrackInput("")
+  }, [trackInput, playlist])
+
+  const removeTrack = useCallback((index: number) => {
+    setPlaylist((prev) => prev.filter((_, i) => i !== index))
+  }, [])
+
+  const handleBurn = useCallback(() => {
+    setError("")
+    if (playlist.length === 0) {
+      setError("Add at least one track.")
+      return
+    }
+    if (!title.trim()) {
+      setError("Please enter a disc label.")
       return
     }
 
@@ -107,25 +131,25 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
         setBurnProgress(100)
         setTimeout(() => {
           onBurn({
-            youtubeId: videoId,
-            discLabel: discLabel.trim(),
-            senderName: senderName.trim() || "Anonymous",
-            secretMessage: secretMessage.trim(),
+            playlist,
+            meta: {
+              title: title.trim(),
+              sender: sender.trim() || "Anonymous",
+              message: message.trim(),
+            },
           })
         }, 400)
       }
       setBurnProgress(Math.min(100, Math.floor(progress)))
     }, 180)
-  }, [youtubeUrl, discLabel, senderName, secretMessage, onBurn])
+  }, [playlist, title, sender, message, onBurn])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop - subtle dark overlay */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-      {/* Platinum Window */}
       <div
-        className="relative w-full max-w-[420px] flex flex-col overflow-hidden select-none"
+        className="relative w-full max-w-[440px] flex flex-col overflow-hidden select-none"
         style={{
           background: "#DDDDDD",
           border: "1px solid #999",
@@ -133,7 +157,7 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
           boxShadow: "1px 2px 8px rgba(0,0,0,0.4), inset 0 0 0 1px #F0F0F0",
         }}
       >
-        {/* Title bar - Platinum horizontal pinstripes with centered title */}
+        {/* Title bar - Platinum horizontal pinstripes */}
         <div
           className="relative flex items-center px-[8px] py-[3px]"
           style={{
@@ -149,7 +173,6 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
             borderRadius: "5px 5px 0 0",
           }}
         >
-          {/* Close box (square) */}
           <button
             className="relative w-[11px] h-[11px] flex-shrink-0 border-0 cursor-pointer"
             aria-label="Close"
@@ -159,58 +182,88 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
               borderRadius: "1px",
             }}
           />
-
-          {/* Centered title */}
           <span
             className="flex-1 text-center text-[11px] font-bold text-[#000] leading-none truncate px-3"
             style={{ fontFamily: macFont }}
           >
-            Hi-MD Disc Burner
+            Mixtape Wizard
           </span>
-
-          {/* Collapse box (right) - hidden spacer for centering */}
           <div className="w-[11px] h-[11px] flex-shrink-0" />
         </div>
 
-        {/* Content area */}
+        {/* Content */}
         <div className="p-4 flex flex-col gap-3" style={{ fontFamily: macFont }}>
-          {/* Section: Track Select */}
-          <div className="flex flex-col gap-[6px]">
-            <div
-              className="flex flex-col gap-[6px] p-3 pt-4 relative"
-              style={{
-                border: "1px solid #AAA",
-                borderRadius: "0",
-                background: "#DDDDDD",
-              }}
+          {/* Playlist Section */}
+          <div
+            className="flex flex-col gap-[6px] p-3 pt-4 relative"
+            style={{ border: "1px solid #AAA", background: "#DDDDDD" }}
+          >
+            <span
+              className="absolute -top-[7px] left-[10px] bg-[#DDDDDD] px-[4px] text-[10px] font-bold text-[#333]"
+              style={{ fontFamily: macFont }}
             >
-              <span
-                className="absolute -top-[7px] left-[10px] bg-[#DDDDDD] px-[4px] text-[10px] font-bold text-[#333]"
-                style={{ fontFamily: macFont }}
-              >
-                Track Select
-              </span>
-              <div className="flex items-center gap-[6px]">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
-                  <rect width="24" height="24" rx="4" fill="#FF0000" />
-                  <path d="M9.5 7.5V16.5L17 12L9.5 7.5Z" fill="white" />
-                </svg>
-                <PlatinumInput
-                  value={youtubeUrl}
-                  onChange={setYoutubeUrl}
-                  placeholder="https://youtube.com/watch?v=..."
-                />
-              </div>
+              Playlist ({playlist.length}/10)
+            </span>
+
+            {/* Add track input */}
+            <div className="flex items-center gap-[6px]">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
+                <rect width="24" height="24" rx="4" fill="#FF0000" />
+                <path d="M9.5 7.5V16.5L17 12L9.5 7.5Z" fill="white" />
+              </svg>
+              <PlatinumInput
+                value={trackInput}
+                onChange={setTrackInput}
+                placeholder="https://youtube.com/watch?v=..."
+              />
+              <PlatinumButton small onClick={addTrack} disabled={isBurning}>
+                Add
+              </PlatinumButton>
             </div>
+
+            {/* Track list */}
+            {playlist.length > 0 && (
+              <div
+                className="flex flex-col gap-[2px] max-h-[120px] overflow-y-auto mt-1"
+                style={{
+                  border: "1px solid #BBB",
+                  background: "#FFF",
+                  boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.1)",
+                }}
+              >
+                {playlist.map((id, i) => (
+                  <div
+                    key={`${id}-${i}`}
+                    className="flex items-center gap-[6px] px-[6px] py-[3px]"
+                    style={{
+                      background: i % 2 === 0 ? "#FFF" : "#F4F4F4",
+                      borderBottom: "1px solid #EEE",
+                    }}
+                  >
+                    <span className="text-[10px] text-[#666] w-[16px] text-right flex-shrink-0" style={{ fontFamily: macFont }}>
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="text-[10px] text-[#000] flex-1 truncate font-mono">{id}</span>
+                    {!isBurning && (
+                      <button
+                        onClick={() => removeTrack(i)}
+                        className="text-[10px] text-[#999] hover:text-[#CC0000] cursor-pointer border-0 bg-transparent px-[3px] leading-none"
+                        style={{ fontFamily: macFont }}
+                        aria-label={`Remove track ${i + 1}`}
+                      >
+                        x
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Section: Disc Properties */}
+          {/* Disc Properties */}
           <div
             className="flex flex-col gap-[8px] p-3 pt-4 relative"
-            style={{
-              border: "1px solid #AAA",
-              background: "#DDDDDD",
-            }}
+            style={{ border: "1px solid #AAA", background: "#DDDDDD" }}
           >
             <span
               className="absolute -top-[7px] left-[10px] bg-[#DDDDDD] px-[4px] text-[10px] font-bold text-[#333]"
@@ -218,55 +271,34 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
             >
               Disc Properties
             </span>
-
             <div className="flex items-center gap-[8px]">
-              <label
-                className="text-[10px] text-[#333] w-[58px] text-right flex-shrink-0 font-semibold"
-                style={{ fontFamily: macFont }}
-              >
+              <label className="text-[10px] text-[#333] w-[58px] text-right flex-shrink-0 font-semibold" style={{ fontFamily: macFont }}>
                 Disc Label:
               </label>
-              <PlatinumInput
-                value={discLabel}
-                onChange={setDiscLabel}
-                placeholder="For Sarah"
-                maxLength={60}
-              />
+              <PlatinumInput value={title} onChange={setTitle} placeholder="Summer Mixtape" maxLength={60} />
             </div>
-
             <div className="flex items-center gap-[8px]">
-              <label
-                className="text-[10px] text-[#333] w-[58px] text-right flex-shrink-0 font-semibold"
-                style={{ fontFamily: macFont }}
-              >
+              <label className="text-[10px] text-[#333] w-[58px] text-right flex-shrink-0 font-semibold" style={{ fontFamily: macFont }}>
                 From:
               </label>
-              <PlatinumInput
-                value={senderName}
-                onChange={setSenderName}
-                placeholder="Your Name"
-                maxLength={40}
-              />
+              <PlatinumInput value={sender} onChange={setSender} placeholder="Your Name" maxLength={40} />
             </div>
           </div>
 
-          {/* Section: Secret Message */}
+          {/* Secret Message */}
           <div
             className="flex flex-col gap-[6px] p-3 pt-4 relative"
-            style={{
-              border: "1px solid #AAA",
-              background: "#DDDDDD",
-            }}
+            style={{ border: "1px solid #AAA", background: "#DDDDDD" }}
           >
             <span
               className="absolute -top-[7px] left-[10px] bg-[#DDDDDD] px-[4px] text-[10px] font-bold text-[#333]"
               style={{ fontFamily: macFont }}
             >
-              Secret Message (taped to back)
+              Secret Message (on back)
             </span>
             <textarea
-              value={secretMessage}
-              onChange={(e) => setSecretMessage(e.target.value)}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
               placeholder="Write something they'll find on the back..."
               rows={3}
               maxLength={500}
@@ -279,14 +311,13 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
               }}
             />
             <div className="text-right text-[9px] text-[#888]" style={{ fontFamily: macFont }}>
-              {secretMessage.length}/500
+              {message.length}/500
             </div>
           </div>
 
-          {/* Error - Mac alert style */}
+          {/* Error */}
           {error && (
             <div className="flex items-center gap-[6px] px-1">
-              {/* Classic Mac stop icon */}
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
                 <polygon points="8,0 16,8 8,16 0,8" fill="#FF4444" stroke="#880000" strokeWidth="0.5" />
                 <text x="8" y="11.5" textAnchor="middle" fontSize="10" fontWeight="bold" fill="white">!</text>
@@ -295,11 +326,11 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
             </div>
           )}
 
-          {/* Burn progress - Mac progress bar style */}
+          {/* Progress bar */}
           {isBurning && (
             <div className="flex flex-col gap-[4px] px-1">
               <span className="text-[10px] text-[#333]" style={{ fontFamily: macFont }}>
-                {burnProgress < 100 ? `Writing to disc... ${burnProgress}%` : "Finalizing session..."}
+                {burnProgress < 100 ? `Writing ${playlist.length} track(s) to disc... ${burnProgress}%` : "Finalizing session..."}
               </span>
               <div
                 className="h-[12px] w-full overflow-hidden"
@@ -307,7 +338,6 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
                   border: "1px solid #999",
                   background: "#FFF",
                   boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.15)",
-                  borderRadius: "0",
                 }}
               >
                 <div
@@ -315,26 +345,21 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
                   style={{
                     width: `${burnProgress}%`,
                     background: "repeating-linear-gradient(135deg, #3366CC 0px, #3366CC 4px, #4477DD 4px, #4477DD 8px)",
-                    borderRadius: "0",
                   }}
                 />
               </div>
             </div>
           )}
 
-          {/* Actions - right-aligned, primary button has thick black ring */}
+          {/* Actions */}
           <div className="flex items-center justify-end gap-[10px] pt-1">
-            <PlatinumButton
-              primary
-              onClick={handleBurn}
-              disabled={isBurning}
-            >
+            <PlatinumButton primary onClick={handleBurn} disabled={isBurning}>
               {isBurning ? "Burning..." : "Burn Disc"}
             </PlatinumButton>
           </div>
         </div>
 
-        {/* Resize grip (decorative) */}
+        {/* Resize grip */}
         <div className="flex justify-end px-[3px] pb-[3px]">
           <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
             <line x1="9" y1="1" x2="1" y2="9" stroke="#AAA" strokeWidth="1" />

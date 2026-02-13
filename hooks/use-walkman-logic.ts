@@ -5,11 +5,15 @@ import type { YouTubePlayer } from "react-youtube"
 import LZString from "lz-string"
 
 // ---------- Schema ----------
+export interface WalkmanMeta {
+  title: string
+  sender: string
+  message: string
+}
+
 export interface WalkmanDisc {
-  youtubeId: string
-  discLabel: string
-  senderName: string
-  secretMessage: string
+  playlist: string[] // YouTube video IDs
+  meta: WalkmanMeta
 }
 
 export type WalkmanMode = "loading" | "studio" | "playback"
@@ -39,7 +43,18 @@ function decodeDisc(hash: string): WalkmanDisc | null {
     const json = LZString.decompressFromEncodedURIComponent(raw)
     if (!json) return null
     const obj = JSON.parse(json)
-    if (obj && typeof obj.youtubeId === "string") return obj as WalkmanDisc
+    // Support legacy single-track format
+    if (obj && typeof obj.youtubeId === "string") {
+      return {
+        playlist: [obj.youtubeId],
+        meta: {
+          title: obj.discLabel || "Untitled",
+          sender: obj.senderName || "Anonymous",
+          message: obj.secretMessage || "",
+        },
+      }
+    }
+    if (obj && Array.isArray(obj.playlist) && obj.meta) return obj as WalkmanDisc
     return null
   } catch {
     return null
@@ -51,12 +66,17 @@ export function useWalkmanLogic() {
   const [mode, setMode] = useState<WalkmanMode>("loading")
   const [disc, setDisc] = useState<WalkmanDisc | null>(null)
 
+  // Playlist state
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0)
+
   // Playback state
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [volume, setVolume] = useState(80)
   const [showVolume, setShowVolume] = useState(false)
+
+  // CRITICAL: isLocked always starts false, only toggled by HOLD switch
   const [isLocked, setIsLocked] = useState(false)
   const [lockFlash, setLockFlash] = useState(false)
   const [isFlipped, setIsFlipped] = useState(false)
@@ -64,6 +84,10 @@ export function useWalkmanLogic() {
   const playerRef = useRef<YouTubePlayer | null>(null)
   const volumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const timeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Current video ID derived from playlist + index
+  const currentVideoId = disc?.playlist[currentTrackIndex] ?? ""
+  const totalTracks = disc?.playlist.length ?? 0
 
   // ---------- Initialize from URL ----------
   useEffect(() => {
@@ -82,6 +106,7 @@ export function useWalkmanLogic() {
     const encoded = encodeDisc(newDisc)
     window.history.replaceState(null, "", `#${encoded}`)
     setDisc(newDisc)
+    setCurrentTrackIndex(0)
     setMode("playback")
   }, [])
 
@@ -100,19 +125,28 @@ export function useWalkmanLogic() {
       if (event.data === 1) {
         setIsPlaying(true)
         setDuration(event.target.getDuration?.() ?? 0)
-        // Start time tracking
         if (timeIntervalRef.current) clearInterval(timeIntervalRef.current)
         timeIntervalRef.current = setInterval(() => {
           if (playerRef.current?.getCurrentTime) {
             setCurrentTime(playerRef.current.getCurrentTime())
           }
         }, 250)
-      } else if (event.data === 2 || event.data === 0) {
+      } else if (event.data === 2) {
         setIsPlaying(false)
         if (timeIntervalRef.current) clearInterval(timeIntervalRef.current)
+      } else if (event.data === 0) {
+        // Track ended - auto-advance to next
+        setIsPlaying(false)
+        if (timeIntervalRef.current) clearInterval(timeIntervalRef.current)
+        setCurrentTrackIndex((prev) => {
+          const total = disc?.playlist.length ?? 1
+          return (prev + 1) % total
+        })
+        setCurrentTime(0)
+        setDuration(0)
       }
     },
-    [],
+    [disc],
   )
 
   // ---------- Button guards (HOLD lock) ----------
@@ -133,8 +167,6 @@ export function useWalkmanLogic() {
     guardAction(() => {
       const player = playerRef.current
       if (!player) return
-      // Query the player's actual state directly to avoid stale closure issues
-      // YT PlayerState: 1 = playing, 2 = paused, 3 = buffering
       const state = player.getPlayerState?.()
       if (state === 1 || state === 3) {
         player.pauseVideo()
@@ -145,6 +177,26 @@ export function useWalkmanLogic() {
       }
     })
   }, [guardAction])
+
+  const nextTrack = useCallback(() => {
+    guardAction(() => {
+      if (!disc || disc.playlist.length <= 1) return
+      setCurrentTrackIndex((prev) => (prev + 1) % disc.playlist.length)
+      setCurrentTime(0)
+      setDuration(0)
+      setIsPlaying(false)
+    })
+  }, [guardAction, disc])
+
+  const prevTrack = useCallback(() => {
+    guardAction(() => {
+      if (!disc || disc.playlist.length <= 1) return
+      setCurrentTrackIndex((prev) => (prev - 1 + disc.playlist.length) % disc.playlist.length)
+      setCurrentTime(0)
+      setDuration(0)
+      setIsPlaying(false)
+    })
+  }, [guardAction, disc])
 
   const seekRelative = useCallback(
     (delta: number) => {
@@ -192,9 +244,11 @@ export function useWalkmanLogic() {
   }, [])
 
   return {
-    // State
     mode,
     disc,
+    currentTrackIndex,
+    currentVideoId,
+    totalTracks,
     isPlaying,
     currentTime,
     duration,
@@ -203,17 +257,15 @@ export function useWalkmanLogic() {
     isLocked,
     lockFlash,
     isFlipped,
-
-    // Actions
     burnDisc,
     togglePlay,
+    nextTrack,
+    prevTrack,
     seekRelative,
     changeVolume,
     toggleHold,
     toggleFlip,
     setIsFlipped,
-
-    // YouTube
     onPlayerReady,
     onPlayerStateChange,
   }
