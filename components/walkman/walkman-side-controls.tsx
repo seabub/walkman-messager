@@ -1,7 +1,6 @@
 "use client"
 
 import { useCallback, useRef } from "react"
-import html2canvas from "html2canvas"
 
 interface WalkmanSideControlsProps {
   isLocked?: boolean
@@ -18,7 +17,6 @@ export function WalkmanSideControls({
   onVolumeUp,
   onVolumeDown,
   onDownload,
-  walkmanRef,
 }: WalkmanSideControlsProps) {
   const downloadingRef = useRef(false)
 
@@ -28,27 +26,7 @@ export function WalkmanSideControls({
       onDownload()
       return
     }
-    if (!walkmanRef?.current) return
-    downloadingRef.current = true
-    try {
-      const canvas = await html2canvas(walkmanRef.current, {
-        scale: 2,
-        backgroundColor: "#1a1a1e",
-        useCORS: true,
-        removeContainer: true,
-        ignoreElements: (el) => el.tagName === "IFRAME",
-      })
-      const dataUrl = canvas.toDataURL("image/png", 1.0)
-      const link = document.createElement("a")
-      link.download = "walkman-mixtape.png"
-      link.href = dataUrl
-      link.click()
-    } catch (err) {
-      console.error("Failed to capture image:", err)
-    } finally {
-      downloadingRef.current = false
-    }
-  }, [onDownload, walkmanRef])
+  }, [onDownload])
 
   return (
     <div
@@ -103,7 +81,6 @@ export function WalkmanSideControls({
           onClick={handleDownload}
           aria-label="Download snapshot"
         >
-          {/* Down-arrow icon */}
           <svg width="8" height="6" viewBox="0 0 8 6" className="mx-auto" fill="none">
             <path d="M1 1L4 4.5L7 1" stroke="#999" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>

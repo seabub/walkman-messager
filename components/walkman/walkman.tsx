@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from "react"
 import { motion } from "framer-motion"
 import YouTube from "react-youtube"
-import html2canvas from "html2canvas"
+
 import { WalkmanScreen } from "./walkman-screen"
 import { WalkmanWheel } from "./walkman-wheel"
 import { WalkmanSideControls } from "./walkman-side-controls"
@@ -111,18 +111,78 @@ export function Walkman({
     if (downloadingRef.current || !captureRef.current) return
     downloadingRef.current = true
     try {
-      const canvas = await html2canvas(captureRef.current, {
-        scale: 2,
-        backgroundColor: "#1a1a1e",
-        useCORS: true,
-        removeContainer: true,
-        ignoreElements: (el) => el.tagName === "IFRAME",
+      // Clone the element, strip iframes, and serialize to SVG foreignObject
+      const clone = captureRef.current.cloneNode(true) as HTMLElement
+      clone.querySelectorAll("iframe").forEach((el) => el.remove())
+
+      const { width, height } = captureRef.current.getBoundingClientRect()
+      const scale = 2
+
+      // Inline all computed styles on every element so the serialized SVG looks correct
+      const inlineStyles = (source: Element, target: Element) => {
+        const computed = window.getComputedStyle(source)
+        const targetEl = target as HTMLElement
+        for (let i = 0; i < computed.length; i++) {
+          const prop = computed[i]
+          try {
+            targetEl.style.setProperty(prop, computed.getPropertyValue(prop))
+          } catch {
+            // skip read-only properties
+          }
+        }
+        const sourceChildren = source.children
+        const targetChildren = target.children
+        for (let i = 0; i < sourceChildren.length; i++) {
+          if (targetChildren[i]) {
+            inlineStyles(sourceChildren[i], targetChildren[i])
+          }
+        }
+      }
+      inlineStyles(captureRef.current, clone)
+
+      const serializer = new XMLSerializer()
+      const html = serializer.serializeToString(clone)
+
+      const svgString = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${width * scale}" height="${height * scale}">
+          <foreignObject width="${width}" height="${height}" transform="scale(${scale})">
+            <div xmlns="http://www.w3.org/1999/xhtml" style="background:#1a1a1e;">
+              ${html}
+            </div>
+          </foreignObject>
+        </svg>
+      `
+
+      const img = new Image()
+      img.crossOrigin = "anonymous"
+      const blob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" })
+      const url = URL.createObjectURL(blob)
+
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => {
+          const canvas = document.createElement("canvas")
+          canvas.width = width * scale
+          canvas.height = height * scale
+          const ctx = canvas.getContext("2d")!
+          ctx.fillStyle = "#1a1a1e"
+          ctx.fillRect(0, 0, canvas.width, canvas.height)
+          ctx.drawImage(img, 0, 0)
+          URL.revokeObjectURL(url)
+
+          canvas.toBlob((pngBlob) => {
+            if (pngBlob) {
+              const a = document.createElement("a")
+              a.download = `walkman-${disc.discLabel.replace(/\s+/g, "-").toLowerCase()}.png`
+              a.href = URL.createObjectURL(pngBlob)
+              a.click()
+              URL.revokeObjectURL(a.href)
+            }
+            resolve()
+          }, "image/png")
+        }
+        img.onerror = reject
+        img.src = url
       })
-      const dataUrl = canvas.toDataURL("image/png", 1.0)
-      const link = document.createElement("a")
-      link.download = `walkman-${disc.discLabel.replace(/\s+/g, "-").toLowerCase()}.png`
-      link.href = dataUrl
-      link.click()
     } catch (err) {
       console.error("Failed to capture:", err)
     } finally {
