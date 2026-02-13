@@ -20,13 +20,13 @@ function AudioVisualizer({ isPlaying }: { isPlaying: boolean }) {
       {[0, 1, 2, 3, 4, 5, 6].map((i) => (
         <div
           key={i}
-          className="w-[3px] rounded-[0.5px]"
+          className={`w-[3px] rounded-[0.5px] ${isPlaying ? "visualizer-bar-active" : ""}`}
           style={{
             background: "linear-gradient(0deg, #00ddcc, #00ffaa)",
             height: isPlaying ? undefined : "2px",
-            animation: isPlaying ? `visualizerBar 0.${3 + (i % 4)}s ease-in-out infinite alternate` : "none",
-            animationDelay: `${i * 0.07}s`,
-          }}
+            "--bar-speed": `0.${3 + (i % 4)}s`,
+            "--bar-delay": `${i * 0.07}s`,
+          } as React.CSSProperties}
         />
       ))}
     </div>

@@ -38,10 +38,15 @@ body {
   mix-blend-mode: multiply;
 }
 
-/* Audio visualizer bar animation */
+/* Audio visualizer bar animation - uses CSS vars to avoid React style conflict */
 @keyframes visualizerBar {
   0% { height: 2px; }
   100% { height: 16px; }
+}
+
+.visualizer-bar-active {
+  animation: visualizerBar var(--bar-speed, 0.3s) ease-in-out infinite alternate;
+  animation-delay: var(--bar-delay, 0s);
 }
 
 /* Marquee scroll */

@@ -7,6 +7,73 @@ interface StudioOverlayProps {
   onBurn: (disc: WalkmanDisc) => void
 }
 
+// Mac OS 9 "Platinum" font stack
+const macFont = "'Geneva', 'Chicago', 'Charcoal', 'Lucida Grande', 'Helvetica Neue', sans-serif"
+
+function PlatinumInput({
+  value,
+  onChange,
+  placeholder,
+  maxLength,
+}: {
+  value: string
+  onChange: (val: string) => void
+  placeholder?: string
+  maxLength?: number
+}) {
+  return (
+    <input
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      maxLength={maxLength}
+      className="flex-1 px-[6px] py-[4px] text-[11px] text-[#000] bg-white outline-none"
+      style={{
+        fontFamily: macFont,
+        border: "1px solid #999",
+        boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.2)",
+        borderRadius: "0px",
+      }}
+    />
+  )
+}
+
+function PlatinumButton({
+  children,
+  onClick,
+  disabled,
+  primary,
+}: {
+  children: React.ReactNode
+  onClick?: () => void
+  disabled?: boolean
+  primary?: boolean
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:brightness-90"
+      style={{
+        fontFamily: macFont,
+        fontSize: "11px",
+        fontWeight: 600,
+        color: "#000",
+        padding: "4px 18px",
+        borderRadius: "4px",
+        border: "1px solid #888",
+        background: "linear-gradient(180deg, #FAFAFA 0%, #E0E0E0 45%, #C8C8C8 55%, #D8D8D8 100%)",
+        boxShadow: primary
+          ? "0 0 0 2px #000, inset 0 1px 0 rgba(255,255,255,0.5)"
+          : "0 1px 2px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.5)",
+      }}
+    >
+      {children}
+    </button>
+  )
+}
+
 export function StudioOverlay({ onBurn }: StudioOverlayProps) {
   const [youtubeUrl, setYoutubeUrl] = useState("")
   const [discLabel, setDiscLabel] = useState("")
@@ -31,7 +98,6 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
     setIsBurning(true)
     setBurnProgress(0)
 
-    // Simulated burn progress
     let progress = 0
     const interval = setInterval(() => {
       progress += Math.random() * 18 + 5
@@ -54,230 +120,227 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+      {/* Backdrop - subtle dark overlay */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
 
-      {/* Window */}
+      {/* Platinum Window */}
       <div
         className="relative w-full max-w-[420px] flex flex-col overflow-hidden select-none"
         style={{
-          background: "linear-gradient(180deg, #c0c0c0 0%, #d4d4d4 2%, #c0c0c0 4%, #b8b8b8 100%)",
-          border: "2px solid #fafafa",
-          borderBottomColor: "#808080",
-          borderRightColor: "#808080",
-          boxShadow: "4px 4px 0 rgba(0,0,0,0.3), inset 1px 1px 0 #fff, inset -1px -1px 0 #808080",
+          background: "#DDDDDD",
+          border: "1px solid #999",
+          borderRadius: "6px",
+          boxShadow: "1px 2px 8px rgba(0,0,0,0.4), inset 0 0 0 1px #F0F0F0",
         }}
       >
-        {/* Title bar */}
+        {/* Title bar - Platinum horizontal pinstripes with centered title */}
         <div
-          className="flex items-center gap-2 px-[6px] py-[3px]"
+          className="relative flex items-center px-[8px] py-[3px]"
           style={{
-            background: "linear-gradient(90deg, #000080 0%, #1084d0 100%)",
+            height: "22px",
+            background: `repeating-linear-gradient(
+              180deg,
+              #E8E8E8 0px,
+              #E8E8E8 1px,
+              #D0D0D0 1px,
+              #D0D0D0 2px
+            )`,
+            borderBottom: "1px solid #AAA",
+            borderRadius: "5px 5px 0 0",
           }}
         >
-          {/* Icon */}
-          <div className="w-[14px] h-[14px] rounded-full bg-[#ff6600] flex items-center justify-center flex-shrink-0">
-            <span className="text-[7px] font-black text-white leading-none">W</span>
-          </div>
-          <span className="text-[11px] font-bold text-white tracking-[0.02em] flex-1 truncate" style={{ fontFamily: "Tahoma, Arial, sans-serif", textShadow: "1px 1px 0 rgba(0,0,0,0.3)" }}>
-            Sony Hi-MD Disc Burner v2.1 - [New Session]
+          {/* Close box (square) */}
+          <button
+            className="relative w-[11px] h-[11px] flex-shrink-0 border-0 cursor-pointer"
+            aria-label="Close"
+            style={{
+              background: "linear-gradient(180deg, #F0F0F0 0%, #D8D8D8 50%, #C0C0C0 100%)",
+              border: "1px solid #888",
+              borderRadius: "1px",
+            }}
+          />
+
+          {/* Centered title */}
+          <span
+            className="flex-1 text-center text-[11px] font-bold text-[#000] leading-none truncate px-3"
+            style={{ fontFamily: macFont }}
+          >
+            Hi-MD Disc Burner
           </span>
-          {/* Window buttons */}
-          <div className="flex gap-[2px]">
-            {["_", "[ ]", "X"].map((sym) => (
-              <div
-                key={sym}
-                className="w-[16px] h-[14px] flex items-center justify-center"
-                style={{
-                  background: "linear-gradient(180deg, #c8c8c8 0%, #b0b0b0 100%)",
-                  border: "1px solid #fff",
-                  borderBottomColor: "#606060",
-                  borderRightColor: "#606060",
-                  boxShadow: "inset 1px 1px 0 #e8e8e8",
-                }}
-              >
-                <span className="text-[8px] font-bold text-black leading-none" style={{ fontFamily: "Tahoma, Arial, sans-serif" }}>{sym}</span>
-              </div>
-            ))}
-          </div>
+
+          {/* Collapse box (right) - hidden spacer for centering */}
+          <div className="w-[11px] h-[11px] flex-shrink-0" />
         </div>
 
         {/* Content area */}
-        <div className="p-3 flex flex-col gap-3" style={{ fontFamily: "Tahoma, Arial, sans-serif" }}>
+        <div className="p-4 flex flex-col gap-3" style={{ fontFamily: macFont }}>
           {/* Section: Track Select */}
-          <fieldset
-            className="p-2 pt-1 flex flex-col gap-[6px]"
-            style={{
-              border: "1px solid #808080",
-              borderBottomColor: "#fff",
-              borderRightColor: "#fff",
-            }}
-          >
-            <legend className="text-[10px] font-semibold text-[#333] px-1 tracking-[0.02em]">Track Select (YouTube URL)</legend>
-            <div className="flex items-center gap-1">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
-                <rect width="24" height="24" rx="4" fill="#FF0000" />
-                <path d="M9.5 7.5V16.5L17 12L9.5 7.5Z" fill="white" />
-              </svg>
-              <input
-                type="text"
-                value={youtubeUrl}
-                onChange={(e) => setYoutubeUrl(e.target.value)}
-                placeholder="https://youtube.com/watch?v=..."
-                className="flex-1 px-[6px] py-[3px] text-[11px] text-black bg-white outline-none"
-                style={{
-                  border: "1px solid #808080",
-                  borderTopColor: "#606060",
-                  borderLeftColor: "#606060",
-                  fontFamily: "Tahoma, Arial, sans-serif",
-                }}
-              />
+          <div className="flex flex-col gap-[6px]">
+            <div
+              className="flex flex-col gap-[6px] p-3 pt-4 relative"
+              style={{
+                border: "1px solid #AAA",
+                borderRadius: "0",
+                background: "#DDDDDD",
+              }}
+            >
+              <span
+                className="absolute -top-[7px] left-[10px] bg-[#DDDDDD] px-[4px] text-[10px] font-bold text-[#333]"
+                style={{ fontFamily: macFont }}
+              >
+                Track Select
+              </span>
+              <div className="flex items-center gap-[6px]">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="flex-shrink-0">
+                  <rect width="24" height="24" rx="4" fill="#FF0000" />
+                  <path d="M9.5 7.5V16.5L17 12L9.5 7.5Z" fill="white" />
+                </svg>
+                <PlatinumInput
+                  value={youtubeUrl}
+                  onChange={setYoutubeUrl}
+                  placeholder="https://youtube.com/watch?v=..."
+                />
+              </div>
             </div>
-          </fieldset>
+          </div>
 
-          {/* Section: Disc Info */}
-          <fieldset
-            className="p-2 pt-1 flex flex-col gap-[6px]"
+          {/* Section: Disc Properties */}
+          <div
+            className="flex flex-col gap-[8px] p-3 pt-4 relative"
             style={{
-              border: "1px solid #808080",
-              borderBottomColor: "#fff",
-              borderRightColor: "#fff",
+              border: "1px solid #AAA",
+              background: "#DDDDDD",
             }}
           >
-            <legend className="text-[10px] font-semibold text-[#333] px-1 tracking-[0.02em]">Disc Properties</legend>
+            <span
+              className="absolute -top-[7px] left-[10px] bg-[#DDDDDD] px-[4px] text-[10px] font-bold text-[#333]"
+              style={{ fontFamily: macFont }}
+            >
+              Disc Properties
+            </span>
 
-            <div className="flex items-center gap-2">
-              <label className="text-[10px] text-[#333] w-[60px] text-right flex-shrink-0">Disc Label:</label>
-              <input
-                type="text"
+            <div className="flex items-center gap-[8px]">
+              <label
+                className="text-[10px] text-[#333] w-[58px] text-right flex-shrink-0 font-semibold"
+                style={{ fontFamily: macFont }}
+              >
+                Disc Label:
+              </label>
+              <PlatinumInput
                 value={discLabel}
-                onChange={(e) => setDiscLabel(e.target.value)}
+                onChange={setDiscLabel}
                 placeholder="For Sarah"
                 maxLength={60}
-                className="flex-1 px-[6px] py-[3px] text-[11px] text-black bg-white outline-none"
-                style={{
-                  border: "1px solid #808080",
-                  borderTopColor: "#606060",
-                  borderLeftColor: "#606060",
-                  fontFamily: "Tahoma, Arial, sans-serif",
-                }}
               />
             </div>
 
-            <div className="flex items-center gap-2">
-              <label className="text-[10px] text-[#333] w-[60px] text-right flex-shrink-0">From:</label>
-              <input
-                type="text"
+            <div className="flex items-center gap-[8px]">
+              <label
+                className="text-[10px] text-[#333] w-[58px] text-right flex-shrink-0 font-semibold"
+                style={{ fontFamily: macFont }}
+              >
+                From:
+              </label>
+              <PlatinumInput
                 value={senderName}
-                onChange={(e) => setSenderName(e.target.value)}
+                onChange={setSenderName}
                 placeholder="Your Name"
                 maxLength={40}
-                className="flex-1 px-[6px] py-[3px] text-[11px] text-black bg-white outline-none"
-                style={{
-                  border: "1px solid #808080",
-                  borderTopColor: "#606060",
-                  borderLeftColor: "#606060",
-                  fontFamily: "Tahoma, Arial, sans-serif",
-                }}
               />
             </div>
-          </fieldset>
+          </div>
 
-          {/* Section: Message */}
-          <fieldset
-            className="p-2 pt-1 flex flex-col gap-[6px]"
+          {/* Section: Secret Message */}
+          <div
+            className="flex flex-col gap-[6px] p-3 pt-4 relative"
             style={{
-              border: "1px solid #808080",
-              borderBottomColor: "#fff",
-              borderRightColor: "#fff",
+              border: "1px solid #AAA",
+              background: "#DDDDDD",
             }}
           >
-            <legend className="text-[10px] font-semibold text-[#333] px-1 tracking-[0.02em]">Secret Message (taped to back)</legend>
+            <span
+              className="absolute -top-[7px] left-[10px] bg-[#DDDDDD] px-[4px] text-[10px] font-bold text-[#333]"
+              style={{ fontFamily: macFont }}
+            >
+              Secret Message (taped to back)
+            </span>
             <textarea
               value={secretMessage}
               onChange={(e) => setSecretMessage(e.target.value)}
-              placeholder="Write something they'll find on the back of the player..."
+              placeholder="Write something they'll find on the back..."
               rows={3}
               maxLength={500}
-              className="w-full px-[6px] py-[3px] text-[11px] text-black bg-white outline-none resize-none"
+              className="w-full px-[6px] py-[4px] text-[11px] text-[#000] bg-white outline-none resize-none"
               style={{
-                border: "1px solid #808080",
-                borderTopColor: "#606060",
-                borderLeftColor: "#606060",
-                fontFamily: "Tahoma, Arial, sans-serif",
+                fontFamily: macFont,
+                border: "1px solid #999",
+                boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.2)",
+                borderRadius: "0px",
               }}
             />
-            <div className="text-right text-[9px] text-[#888]">{secretMessage.length}/500</div>
-          </fieldset>
+            <div className="text-right text-[9px] text-[#888]" style={{ fontFamily: macFont }}>
+              {secretMessage.length}/500
+            </div>
+          </div>
 
-          {/* Error */}
+          {/* Error - Mac alert style */}
           {error && (
-            <div className="flex items-center gap-1 px-1">
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
-                <circle cx="8" cy="8" r="7" fill="#FF0000" />
-                <path d="M5 5L11 11M11 5L5 11" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+            <div className="flex items-center gap-[6px] px-1">
+              {/* Classic Mac stop icon */}
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0">
+                <polygon points="8,0 16,8 8,16 0,8" fill="#FF4444" stroke="#880000" strokeWidth="0.5" />
+                <text x="8" y="11.5" textAnchor="middle" fontSize="10" fontWeight="bold" fill="white">!</text>
               </svg>
-              <span className="text-[10px] text-[#cc0000]">{error}</span>
+              <span className="text-[10px] text-[#990000]" style={{ fontFamily: macFont }}>{error}</span>
             </div>
           )}
 
-          {/* Burn progress */}
+          {/* Burn progress - Mac progress bar style */}
           {isBurning && (
-            <div className="flex flex-col gap-1 px-1">
-              <span className="text-[10px] text-[#333]">
-                {burnProgress < 100 ? `Burning disc... ${burnProgress}%` : "Finalizing session..."}
+            <div className="flex flex-col gap-[4px] px-1">
+              <span className="text-[10px] text-[#333]" style={{ fontFamily: macFont }}>
+                {burnProgress < 100 ? `Writing to disc... ${burnProgress}%` : "Finalizing session..."}
               </span>
               <div
-                className="h-[16px] w-full"
+                className="h-[12px] w-full overflow-hidden"
                 style={{
-                  border: "1px solid #808080",
-                  borderTopColor: "#606060",
-                  borderLeftColor: "#606060",
-                  background: "#fff",
+                  border: "1px solid #999",
+                  background: "#FFF",
+                  boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.15)",
+                  borderRadius: "0",
                 }}
               >
                 <div
                   className="h-full transition-all duration-150"
                   style={{
                     width: `${burnProgress}%`,
-                    background: "repeating-linear-gradient(90deg, #000080 0px, #000080 8px, #1084d0 8px, #1084d0 16px)",
+                    background: "repeating-linear-gradient(135deg, #3366CC 0px, #3366CC 4px, #4477DD 4px, #4477DD 8px)",
+                    borderRadius: "0",
                   }}
                 />
               </div>
             </div>
           )}
 
-          {/* Actions */}
-          <div className="flex items-center justify-end gap-2 pt-1">
-            <button
+          {/* Actions - right-aligned, primary button has thick black ring */}
+          <div className="flex items-center justify-end gap-[10px] pt-1">
+            <PlatinumButton
+              primary
               onClick={handleBurn}
               disabled={isBurning}
-              className="px-4 py-[3px] text-[11px] font-semibold text-black cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed active:pt-[4px] active:pb-[2px]"
-              style={{
-                background: "linear-gradient(180deg, #e8e8e8 0%, #c0c0c0 100%)",
-                border: "2px solid #fff",
-                borderBottomColor: "#606060",
-                borderRightColor: "#606060",
-                boxShadow: "1px 1px 0 #404040",
-                fontFamily: "Tahoma, Arial, sans-serif",
-              }}
             >
-              {isBurning ? "Burning..." : "BURN DISC"}
-            </button>
+              {isBurning ? "Burning..." : "Burn Disc"}
+            </PlatinumButton>
           </div>
         </div>
 
-        {/* Status bar */}
-        <div
-          className="flex items-center px-2 py-[2px]"
-          style={{
-            background: "#c0c0c0",
-            borderTop: "1px solid #808080",
-          }}
-        >
-          <span className="text-[9px] text-[#444]" style={{ fontFamily: "Tahoma, Arial, sans-serif" }}>
-            {isBurning ? "Writing data to Hi-MD disc..." : "Ready - Insert track and burn"}
-          </span>
+        {/* Resize grip (decorative) */}
+        <div className="flex justify-end px-[3px] pb-[3px]">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <line x1="9" y1="1" x2="1" y2="9" stroke="#AAA" strokeWidth="1" />
+            <line x1="9" y1="4" x2="4" y2="9" stroke="#AAA" strokeWidth="1" />
+            <line x1="9" y1="7" x2="7" y2="9" stroke="#AAA" strokeWidth="1" />
+          </svg>
         </div>
       </div>
     </div>

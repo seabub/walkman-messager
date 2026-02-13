@@ -49,7 +49,7 @@ export function WalkmanSideControls({
 
   return (
     <div
-      className="relative flex flex-col items-center justify-between py-4"
+      className="relative z-10 flex flex-col items-center justify-between py-4"
       style={{
         width: "26px",
         height: "100%",
@@ -90,19 +90,24 @@ export function WalkmanSideControls({
       </div>
 
       {/* DOWNLOAD button */}
-      <div className="flex flex-col items-center gap-[2px]">
+      <div className="relative z-10 flex flex-col items-center gap-[3px]">
         <button
-          className="w-[16px] h-[8px] rounded-[2px] cursor-pointer border-0 active:brightness-75 transition-all"
+          className="w-[18px] h-[14px] rounded-[2px] cursor-pointer border-0 active:brightness-75 transition-all"
           style={{
-            background: "linear-gradient(180deg, #222 0%, #1a1a1a 50%, #2a2a2a 100%)",
-            boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(255,255,255,0.05)",
+            background: "linear-gradient(180deg, #3a3a3a 0%, #222 50%, #3a3a3a 100%)",
+            boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), 0 0.5px 1px rgba(255,255,255,0.08), 0 0 0 0.5px rgba(255,255,255,0.05)",
           }}
           onClick={handleDownload}
           aria-label="Download snapshot"
-        />
+        >
+          {/* Down-arrow icon */}
+          <svg width="8" height="6" viewBox="0 0 8 6" className="mx-auto" fill="none">
+            <path d="M1 1L4 4.5L7 1" stroke="#999" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
         <span
-          className="text-[4.5px] font-bold tracking-[0.08em] text-[#777] uppercase select-none leading-none"
-          style={{ writingMode: "vertical-rl", textOrientation: "mixed", letterSpacing: "0.08em" }}
+          className="text-[4.5px] font-bold tracking-[0.08em] text-[#888] uppercase select-none leading-none"
+          style={{ writingMode: "vertical-rl", textOrientation: "mixed", letterSpacing: "0.1em" }}
         >
           DOWNLOAD
         </span>

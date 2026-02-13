@@ -131,14 +131,20 @@ export function useWalkmanLogic() {
   // ---------- Transport controls ----------
   const togglePlay = useCallback(() => {
     guardAction(() => {
-      if (!playerRef.current) return
-      if (isPlaying) {
-        playerRef.current.pauseVideo()
+      const player = playerRef.current
+      if (!player) return
+      // Query the player's actual state directly to avoid stale closure issues
+      // YT PlayerState: 1 = playing, 2 = paused, 3 = buffering
+      const state = player.getPlayerState?.()
+      if (state === 1 || state === 3) {
+        player.pauseVideo()
+        setIsPlaying(false)
       } else {
-        playerRef.current.playVideo()
+        player.playVideo()
+        setIsPlaying(true)
       }
     })
-  }, [guardAction, isPlaying])
+  }, [guardAction])
 
   const seekRelative = useCallback(
     (delta: number) => {
