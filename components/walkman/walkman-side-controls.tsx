@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useRef } from "react"
-import { toPng } from "html-to-image"
+import html2canvas from "html2canvas"
 
 interface WalkmanSideControlsProps {
   isLocked?: boolean
@@ -31,17 +31,14 @@ export function WalkmanSideControls({
     if (!walkmanRef?.current) return
     downloadingRef.current = true
     try {
-      const dataUrl = await toPng(walkmanRef.current, {
-        quality: 1,
-        pixelRatio: 2,
+      const canvas = await html2canvas(walkmanRef.current, {
+        scale: 2,
         backgroundColor: "#1a1a1e",
-        fontEmbedCSS: "",
-        skipFonts: true,
-        filter: (node: HTMLElement) => {
-          if (node.tagName === "IFRAME") return false
-          return true
-        },
+        useCORS: true,
+        removeContainer: true,
+        ignoreElements: (el) => el.tagName === "IFRAME",
       })
+      const dataUrl = canvas.toDataURL("image/png", 1.0)
       const link = document.createElement("a")
       link.download = "walkman-mixtape.png"
       link.href = dataUrl

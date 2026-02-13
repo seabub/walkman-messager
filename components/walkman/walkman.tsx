@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback } from "react"
 import { motion } from "framer-motion"
 import YouTube from "react-youtube"
-import { toPng } from "html-to-image"
+import html2canvas from "html2canvas"
 import { WalkmanScreen } from "./walkman-screen"
 import { WalkmanWheel } from "./walkman-wheel"
 import { WalkmanSideControls } from "./walkman-side-controls"
@@ -111,18 +111,14 @@ export function Walkman({
     if (downloadingRef.current || !captureRef.current) return
     downloadingRef.current = true
     try {
-      const dataUrl = await toPng(captureRef.current, {
-        quality: 1,
-        pixelRatio: 2,
+      const canvas = await html2canvas(captureRef.current, {
+        scale: 2,
         backgroundColor: "#1a1a1e",
-        fontEmbedCSS: "",
-        skipFonts: true,
-        filter: (node: HTMLElement) => {
-          // Skip the hidden YouTube iframe which can cause CORS/font issues
-          if (node.tagName === "IFRAME") return false
-          return true
-        },
+        useCORS: true,
+        removeContainer: true,
+        ignoreElements: (el) => el.tagName === "IFRAME",
       })
+      const dataUrl = canvas.toDataURL("image/png", 1.0)
       const link = document.createElement("a")
       link.download = `walkman-${disc.discLabel.replace(/\s+/g, "-").toLowerCase()}.png`
       link.href = dataUrl
