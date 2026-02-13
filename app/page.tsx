@@ -30,6 +30,9 @@ export default function Page() {
           <div className="scale-[0.62] sm:scale-[0.75] md:scale-100 lg:scale-110 xl:scale-125 origin-center">
             <Walkman
               disc={logic.disc}
+              currentTrackIndex={logic.currentTrackIndex}
+              currentVideoId={logic.currentVideoId}
+              totalTracks={logic.totalTracks}
               isPlaying={logic.isPlaying}
               currentTime={logic.currentTime}
               duration={logic.duration}
@@ -43,6 +46,8 @@ export default function Page() {
               onPlayPause={logic.togglePlay}
               onSeekLeft={() => logic.seekRelative(-10)}
               onSeekRight={() => logic.seekRelative(10)}
+              onPrevTrack={logic.prevTrack}
+              onNextTrack={logic.nextTrack}
               onVolumeUp={() => logic.changeVolume(10)}
               onVolumeDown={() => logic.changeVolume(-10)}
               onToggleHold={logic.toggleHold}

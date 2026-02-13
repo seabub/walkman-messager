@@ -12,6 +12,9 @@ import type { WalkmanDisc } from "@/hooks/use-walkman-logic"
 
 interface WalkmanProps {
   disc: WalkmanDisc
+  currentTrackIndex: number
+  currentVideoId: string
+  totalTracks: number
   isPlaying: boolean
   currentTime: number
   duration: number
@@ -25,6 +28,8 @@ interface WalkmanProps {
   onPlayPause: () => void
   onSeekLeft: () => void
   onSeekRight: () => void
+  onPrevTrack: () => void
+  onNextTrack: () => void
   onVolumeUp: () => void
   onVolumeDown: () => void
   onToggleHold: () => void
@@ -86,6 +91,9 @@ function MetalButton({
 
 export function Walkman({
   disc,
+  currentTrackIndex,
+  currentVideoId,
+  totalTracks,
   isPlaying,
   currentTime,
   duration,
@@ -99,6 +107,8 @@ export function Walkman({
   onPlayPause,
   onSeekLeft,
   onSeekRight,
+  onPrevTrack,
+  onNextTrack,
   onVolumeUp,
   onVolumeDown,
   onToggleHold,
@@ -172,7 +182,7 @@ export function Walkman({
           canvas.toBlob((pngBlob) => {
             if (pngBlob) {
               const a = document.createElement("a")
-              a.download = `walkman-${disc.discLabel.replace(/\s+/g, "-").toLowerCase()}.png`
+              a.download = `walkman-${disc.meta.title.replace(/\s+/g, "-").toLowerCase()}.png`
               a.href = URL.createObjectURL(pngBlob)
               a.click()
               URL.revokeObjectURL(a.href)
@@ -188,14 +198,14 @@ export function Walkman({
     } finally {
       downloadingRef.current = false
     }
-  }, [disc.discLabel])
+  }, [disc.meta.title])
 
   return (
     <div className="relative" style={{ perspective: "1200px" }}>
       {/* Hidden YouTube player */}
       <div className="absolute w-0 h-0 overflow-hidden" aria-hidden="true">
         <YouTube
-          videoId={disc.youtubeId}
+          videoId={currentVideoId}
           opts={{
             height: "1",
             width: "1",
@@ -270,8 +280,10 @@ export function Walkman({
                   }}
                 >
                   <WalkmanScreen
-                    discLabel={disc.discLabel}
-                    senderName={disc.senderName}
+                    discLabel={disc.meta.title}
+                    senderName={disc.meta.sender}
+                    currentTrackIndex={currentTrackIndex}
+                    totalTracks={totalTracks}
                     isPlaying={isPlaying}
                     currentTime={currentTime}
                     duration={duration}
@@ -308,6 +320,8 @@ export function Walkman({
                     onPlayPause={onPlayPause}
                     onSeekLeft={onSeekLeft}
                     onSeekRight={onSeekRight}
+                    onPrevTrack={onPrevTrack}
+                    onNextTrack={onNextTrack}
                   />
                 </div>
 
@@ -423,9 +437,9 @@ export function Walkman({
           style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
         >
           <WalkmanBackPanel
-            secretMessage={disc.secretMessage}
-            senderName={disc.senderName}
-            discLabel={disc.discLabel}
+            secretMessage={disc.meta.message}
+            senderName={disc.meta.sender}
+            discLabel={disc.meta.title}
           />
         </div>
       </motion.div>

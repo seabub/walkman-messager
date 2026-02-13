@@ -6,9 +6,11 @@ interface WalkmanWheelProps {
   onPlayPause?: () => void
   onSeekLeft?: () => void
   onSeekRight?: () => void
+  onPrevTrack?: () => void
+  onNextTrack?: () => void
 }
 
-export function WalkmanWheel({ onPlayPause, onSeekLeft, onSeekRight }: WalkmanWheelProps) {
+export function WalkmanWheel({ onPlayPause, onSeekLeft, onSeekRight, onPrevTrack, onNextTrack }: WalkmanWheelProps) {
   const [activeDir, setActiveDir] = useState<string | null>(null)
   const [centerPressed, setCenterPressed] = useState(false)
 
@@ -62,32 +64,38 @@ export function WalkmanWheel({ onPlayPause, onSeekLeft, onSeekRight }: WalkmanWh
             "inset 0 2px 4px rgba(0,0,0,0.2), inset 0 -1px 2px rgba(255,255,255,0.3), 0 0 0 1px rgba(0,0,0,0.1)",
         }}
       >
-        {/* Up */}
+        {/* Up - Previous Track */}
         <button
           className="absolute top-[4px] left-1/2 -translate-x-1/2 w-[28px] h-[28px] flex items-center justify-center rounded-full transition-all cursor-pointer border-0 bg-transparent"
           style={{
             background: activeDir === "up" ? "rgba(0,0,0,0.08)" : "transparent",
           }}
-          onPointerDown={() => setActiveDir("up")}
+          onPointerDown={() => {
+            setActiveDir("up")
+            onPrevTrack?.()
+          }}
           onPointerUp={() => setActiveDir(null)}
           onPointerLeave={() => setActiveDir(null)}
-          aria-label="Folder up"
+          aria-label="Previous track"
         >
           <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
             <path d="M1 6.5L5 1.5L9 6.5" stroke="#555" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
 
-        {/* Down */}
+        {/* Down - Next Track */}
         <button
           className="absolute bottom-[4px] left-1/2 -translate-x-1/2 w-[28px] h-[28px] flex items-center justify-center rounded-full transition-all cursor-pointer border-0 bg-transparent"
           style={{
             background: activeDir === "down" ? "rgba(0,0,0,0.08)" : "transparent",
           }}
-          onPointerDown={() => setActiveDir("down")}
+          onPointerDown={() => {
+            setActiveDir("down")
+            onNextTrack?.()
+          }}
           onPointerUp={() => setActiveDir(null)}
           onPointerLeave={() => setActiveDir(null)}
-          aria-label="Folder down"
+          aria-label="Next track"
         >
           <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
             <path d="M1 1.5L5 6.5L9 1.5" stroke="#555" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

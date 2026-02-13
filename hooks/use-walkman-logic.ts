@@ -101,6 +101,18 @@ export function useWalkmanLogic() {
     }
   }, [])
 
+  // ---------- Reset track when video ID changes ----------
+  useEffect(() => {
+    if (currentVideoId && playerRef.current) {
+      setCurrentTime(0)
+      setDuration(0)
+      // Optionally auto-play the new track
+      if (isPlaying) {
+        playerRef.current.playVideo()
+      }
+    }
+  }, [currentVideoId, isPlaying])
+
   // ---------- Burn disc (creation -> playback) ----------
   const burnDisc = useCallback((newDisc: WalkmanDisc) => {
     const encoded = encodeDisc(newDisc)

@@ -5,6 +5,8 @@ import { useEffect, useState, useRef } from "react"
 interface WalkmanScreenProps {
   discLabel?: string
   senderName?: string
+  currentTrackIndex?: number
+  totalTracks?: number
   isPlaying?: boolean
   currentTime?: number
   duration?: number
@@ -52,6 +54,8 @@ function MarqueeText({ text, isPlaying }: { text: string; isPlaying: boolean }) 
 export function WalkmanScreen({
   discLabel = "Blue SKY",
   senderName = "Hi-MD Orchestra",
+  currentTrackIndex = 0,
+  totalTracks = 1,
   isPlaying = false,
   currentTime = 0,
   duration = 0,
@@ -119,7 +123,9 @@ export function WalkmanScreen({
                   <rect x="4.5" y="1" width="2.5" height="7" fill="#00ddaa" />
                 </svg>
               )}
-              <span className="font-walkman text-[13px] text-[#e0e8f0] tracking-[0.1em] leading-none">001</span>
+              <span className="font-walkman text-[13px] text-[#e0e8f0] tracking-[0.1em] leading-none">
+                {String(currentTrackIndex + 1).padStart(2, "0")}/{String(totalTracks).padStart(2, "0")}
+              </span>
             </div>
             <span className="font-walkman text-[18px] text-[#e0e8f0] tracking-[0.12em] leading-tight mt-[1px]">
               {minutes}:{seconds}

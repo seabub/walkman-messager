@@ -46,59 +46,130 @@ export function WalkmanBackPanel({ secretMessage, senderName, discLabel }: Walkm
           }}
         />
 
-        {/* Taped note */}
+        {/* Cyber-Sticker / Industrial Warranty Label */}
         <div className="relative flex-1 flex items-center justify-center p-6">
-          {/* The note itself */}
           <div
             className="relative max-w-[300px] w-full p-5"
             style={{
-              background: "linear-gradient(135deg, #fef9e7 0%, #fdf6d8 30%, #fcf3c8 100%)",
-              boxShadow: "2px 3px 10px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1)",
-              transform: "rotate(-1.5deg)",
+              /* Brushed silver foil texture */
+              background: "linear-gradient(135deg, #e8e8e8 0%, #ffffff 25%, #d4d4d4 50%, #f0f0f0 75%, #c8c8c8 100%)",
+              boxShadow: "3px 4px 12px rgba(0,0,0,0.25), 0 2px 6px rgba(0,0,0,0.15)",
+              /* Double border: outer black, inner red */
+              border: "2px solid #000",
+              outline: "1px solid #CC0000",
+              outlineOffset: "-4px",
+              transform: "rotate(-0.8deg)",
             }}
           >
-            {/* Tape strips */}
+            {/* Metallic shine effect */}
             <div
-              className="absolute -top-[8px] left-1/2 -translate-x-1/2 w-[60px] h-[16px]"
+              className="absolute inset-0 pointer-events-none"
               style={{
-                background: "linear-gradient(180deg, rgba(200,200,180,0.7) 0%, rgba(180,180,160,0.5) 100%)",
-                backdropFilter: "blur(1px)",
-              }}
-            />
-            <div
-              className="absolute -bottom-[6px] right-[30px] w-[40px] h-[14px]"
-              style={{
-                background: "linear-gradient(180deg, rgba(200,200,180,0.6) 0%, rgba(180,180,160,0.4) 100%)",
-                transform: "rotate(3deg)",
+                background:
+                  "repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(255,255,255,0.15) 2px, rgba(255,255,255,0.15) 4px)",
+                opacity: 0.6,
               }}
             />
 
-            {/* Disc label at top */}
-            <div className="mb-3 pb-2" style={{ borderBottom: "1px dashed rgba(0,0,0,0.15)" }}>
-              <span
-                className="text-[11px] tracking-[0.05em] text-[#888]"
-                style={{ fontFamily: "'Caveat', cursive" }}
-              >
-                re: {discLabel}
-              </span>
+            {/* Header: Disc Label */}
+            <div className="relative mb-4 pb-3" style={{ borderBottom: "2px solid #000" }}>
+              <div className="flex items-center justify-between">
+                <span
+                  className="text-[9px] font-bold tracking-[0.15em] text-[#000] uppercase"
+                  style={{ fontFamily: "Arial, sans-serif" }}
+                >
+                  QUALITY ASSURANCE
+                </span>
+                <span
+                  className="text-[8px] font-mono text-[#444] tracking-wider"
+                  style={{ fontFamily: "'Courier New', monospace" }}
+                >
+                  MZ-DH10P
+                </span>
+              </div>
+              <div className="mt-2">
+                <span
+                  className="text-[10px] font-semibold text-[#222] tracking-[0.03em]"
+                  style={{ fontFamily: "Arial, sans-serif" }}
+                >
+                  DISC: {discLabel}
+                </span>
+              </div>
             </div>
 
-            {/* Message body */}
-            <p
-              className="text-[15px] leading-[1.6] text-[#333] whitespace-pre-wrap break-words"
-              style={{ fontFamily: "'Caveat', cursive" }}
-            >
-              {secretMessage || "No secret message was left on this disc."}
-            </p>
+            {/* Message body - Handwritten style */}
+            <div className="relative mb-4">
+              <p
+                className="text-[16px] leading-[1.7] text-[#1a3a6e] whitespace-pre-wrap break-words"
+                style={{
+                  fontFamily: "'Caveat', cursive",
+                  transform: "rotate(-0.3deg)",
+                }}
+              >
+                {secretMessage || "This disc contains carefully curated audio memories. Handle with care."}
+              </p>
+            </div>
 
             {/* Signature */}
-            <div className="mt-4 pt-2 flex justify-end" style={{ borderTop: "1px dashed rgba(0,0,0,0.1)" }}>
-              <span
-                className="text-[14px] text-[#555]"
-                style={{ fontFamily: "'Caveat', cursive" }}
+            <div className="relative flex items-end justify-between mt-4 pt-3" style={{ borderTop: "1px dashed rgba(0,0,0,0.2)" }}>
+              <div>
+                <div className="text-[8px] font-semibold text-[#000] tracking-[0.08em] uppercase mb-1" style={{ fontFamily: "Arial, sans-serif" }}>
+                  FROM:
+                </div>
+                <span
+                  className="text-[16px] text-[#1a3a6e]"
+                  style={{
+                    fontFamily: "'Caveat', cursive",
+                    transform: "rotate(-0.5deg)",
+                    display: "inline-block",
+                  }}
+                >
+                  {senderName}
+                </span>
+              </div>
+
+              {/* QC Stamp */}
+              <div
+                className="relative"
+                style={{
+                  width: "60px",
+                  height: "60px",
+                  border: "2px solid #CC0000",
+                  borderRadius: "50%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transform: "rotate(12deg)",
+                  opacity: 0.85,
+                }}
               >
-                - {senderName}
-              </span>
+                <div
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    border: "1px solid #CC0000",
+                    margin: "3px",
+                  }}
+                />
+                <span
+                  className="text-[7px] font-black tracking-[0.08em] text-[#CC0000] leading-none"
+                  style={{ fontFamily: "Arial, sans-serif" }}
+                >
+                  PROPERTY
+                </span>
+                <span
+                  className="text-[6px] font-black tracking-[0.06em] text-[#CC0000] leading-none mt-[2px]"
+                  style={{ fontFamily: "Arial, sans-serif" }}
+                >
+                  OF
+                </span>
+                <span
+                  className="text-[8px] font-black tracking-[0.05em] text-[#CC0000] leading-none mt-[2px] max-w-[50px] text-center truncate px-1"
+                  style={{ fontFamily: "Arial, sans-serif" }}
+                >
+                  {senderName.toUpperCase().substring(0, 8)}
+                </span>
+              </div>
             </div>
           </div>
         </div>
