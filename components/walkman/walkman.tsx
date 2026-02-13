@@ -115,6 +115,13 @@ export function Walkman({
         quality: 1,
         pixelRatio: 2,
         backgroundColor: "#1a1a1e",
+        fontEmbedCSS: "",
+        skipFonts: true,
+        filter: (node: HTMLElement) => {
+          // Skip the hidden YouTube iframe which can cause CORS/font issues
+          if (node.tagName === "IFRAME") return false
+          return true
+        },
       })
       const link = document.createElement("a")
       link.download = `walkman-${disc.discLabel.replace(/\s+/g, "-").toLowerCase()}.png`

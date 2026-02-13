@@ -35,6 +35,12 @@ export function WalkmanSideControls({
         quality: 1,
         pixelRatio: 2,
         backgroundColor: "#1a1a1e",
+        fontEmbedCSS: "",
+        skipFonts: true,
+        filter: (node: HTMLElement) => {
+          if (node.tagName === "IFRAME") return false
+          return true
+        },
       })
       const link = document.createElement("a")
       link.download = "walkman-mixtape.png"
