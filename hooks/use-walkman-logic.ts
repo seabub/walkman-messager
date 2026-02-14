@@ -277,8 +277,12 @@ export function useWalkmanLogic() {
       event.target.setVolume(volume)
       // Video may already be cued; try to get metadata
       updateVideoData(event.target)
+      // Autoplay when opening the app in playback mode (shared link with disc)
+      if (currentVideoId) {
+        event.target.playVideo?.()
+      }
     },
-    [volume, updateVideoData],
+    [volume, updateVideoData, currentVideoId],
   )
 
   const onPlayerStateChange = useCallback(

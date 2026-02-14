@@ -364,7 +364,7 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
             </div>
           </div>
 
-          {/* Secret Message */}
+          {/* Sticky note message */}
           <div
             className="flex flex-col gap-[6px] p-3 pt-4 relative"
             style={{ border: "1px solid #AAA", background: "#DDDDDD" }}
@@ -373,19 +373,19 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
               className="absolute -top-[7px] left-[10px] bg-[#DDDDDD] px-[4px] text-[10px] font-bold text-[#333]"
               style={{ fontFamily: macFont }}
             >
-              Secret Message (on back)
+              Sticky note (on the desk)
             </span>
             <textarea
               value={message}
               onChange={(e) => {
                 const value = e.target.value
-                if (value.length <= 100) {
+                if (value.length <= 300) {
                   setMessage(value)
                 }
               }}
-              placeholder="Write something they'll find on the back..."
-              rows={3}
-              maxLength={100}
+              placeholder="Write a note for the desk..."
+              rows={6}
+              maxLength={300}
               className="w-full px-[6px] py-[4px] text-[11px] text-[#000] bg-white outline-none resize-none"
               style={{
                 fontFamily: macFont,
@@ -395,7 +395,7 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
               }}
             />
             <div className="text-right text-[9px] text-[#888]" style={{ fontFamily: macFont }}>
-              {message.length}/100
+              {message.length}/300
             </div>
           </div>
 

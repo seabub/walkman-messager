@@ -4,7 +4,6 @@ import { useRef, useCallback } from "react"
 import { Walkman } from "@/components/walkman/walkman"
 import { StudioOverlay } from "@/components/walkman/studio-overlay"
 import { useWalkmanLogic } from "@/hooks/use-walkman-logic"
-import { StickyNote } from "@/components/draggable/StickyNote"
 import { Polaroid } from "@/components/draggable/Polaroid"
 
 export default function Page() {
@@ -44,6 +43,27 @@ export default function Page() {
       {/* Playback Mode - Digital Desk */}
       {logic.mode === "playback" && logic.disc && (
         <div className="relative w-full min-h-screen h-screen flex items-center justify-center overflow-hidden">
+          {/* Make your own – macOS Platinum style, link to app root (studio) */}
+          <a
+            href="https://walkman-messager.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="fixed top-4 right-4 z-30 cursor-pointer active:brightness-90 transition-all"
+            style={{
+              fontFamily: "'Geneva', 'Chicago', 'Charcoal', 'Lucida Grande', 'Helvetica Neue', sans-serif",
+              fontSize: "11px",
+              fontWeight: 600,
+              color: "#000",
+              padding: "4px 18px",
+              borderRadius: "4px",
+              border: "1px solid #888",
+              background: "linear-gradient(180deg, #FAFAFA 0%, #E0E0E0 45%, #C8C8C8 55%, #D8D8D8 100%)",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.5)",
+            }}
+          >
+            Make your own
+          </a>
+
           {/* Desk background */}
           <div
             className="absolute inset-0 -z-10"
@@ -120,43 +140,6 @@ export default function Page() {
                   onShareLink={handleShareLink}
                 />
               </div>
-            </div>
-
-            {/* Layer 3: StickyNote (Top - z-index: 20). pointer-events-none so clicks pass through to Walkman/Polaroids. */}
-            <div className="absolute inset-0 z-20 pointer-events-none">
-              {logic.disc.message && (
-                <StickyNote
-                  message={logic.disc.message}
-                  initialPosition={{
-                    x: logic.disc.positions?.note?.x ?? 40,
-                    y: logic.disc.positions?.note?.y ?? 60,
-                  }}
-                  initialSize={
-                    logic.disc.positions?.note?.w != null && logic.disc.positions?.note?.h != null
-                      ? { w: logic.disc.positions.note.w, h: logic.disc.positions.note.h }
-                      : undefined
-                  }
-                  onDragEnd={(x, y) => {
-                    if (!logic.disc) return
-                    const currentPositions = logic.disc.positions || {}
-                    const currentNote = currentPositions.note || {}
-                    logic.updatePositions({
-                      ...currentPositions,
-                      note: { ...currentNote, x, y },
-                    })
-                  }}
-                  onSizeChange={(w, h) => {
-                    if (!logic.disc) return
-                    const currentPositions = logic.disc.positions || {}
-                    const currentNote = currentPositions.note || {}
-                    logic.updatePositions({
-                      ...currentPositions,
-                      note: { ...currentNote, w, h },
-                    })
-                  }}
-                  dragConstraints={deskContainerRef}
-                />
-              )}
             </div>
           </div>
         </div>

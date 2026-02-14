@@ -106,6 +106,7 @@ export function Walkman({
         onShareLink={externalOnShareLink}
         captureRef={captureRef}
         onOpenPlaylist={onOpenPlaylist}
+        onToggleFlip={onToggleFlip}
         screen={
           <WalkmanScreen
             discLabel={disc.meta.title}

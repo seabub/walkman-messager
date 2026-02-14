@@ -1,7 +1,7 @@
 "use client"
 
 import { motion, useMotionValue } from "framer-motion"
-import { useRef, useEffect, useMemo } from "react"
+import { useRef, useEffect, useState } from "react"
 
 interface PolaroidProps {
   src: string
@@ -22,6 +22,8 @@ export function Polaroid({
   dragConstraints,
 }: PolaroidProps) {
   const constraintsRef = useRef(null)
+  const [status, setStatus] = useState<"loading" | "ok" | "error">("loading")
+  const [retryKey, setRetryKey] = useState(0)
 
   // Calculate initial position if not provided
   // Spread polaroids around center in a circular/radial pattern
@@ -42,6 +44,11 @@ export function Polaroid({
     x.set(finalX)
     y.set(finalY)
   }, [finalX, finalY, x, y])
+
+  // Reset status when src changes
+  useEffect(() => {
+    setStatus("loading")
+  }, [src, retryKey])
 
   return (
     <motion.div
@@ -74,13 +81,41 @@ export function Polaroid({
         }}
       >
         {/* Image area with top/side borders */}
-        <div className="absolute inset-x-[10px] top-[10px] bottom-[28px] overflow-hidden rounded-[2px] bg-black/6">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={src}
-            alt={alt || "Polaroid"}
-            className="w-full h-full object-cover"
-          />
+        <div className="absolute inset-x-[10px] top-[10px] bottom-[28px] overflow-hidden rounded-[2px] bg-black/6 flex items-center justify-center">
+          {status === "error" ? (
+            <div className="flex flex-col items-center justify-center gap-2 p-3 text-center">
+              <span className="text-[10px] text-[#666]">Photo couldn’t load</span>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setRetryKey((k) => k + 1)
+                }}
+                className="text-[9px] text-[#00ccbb] underline"
+              >
+                Retry
+              </button>
+            </div>
+          ) : (
+            <>
+              {status === "loading" && (
+                <div className="absolute inset-0 flex items-center justify-center bg-[#0a0a0a]/20">
+                  <div className="w-6 h-6 border-2 border-[#00ccbb]/40 border-t-[#00ccbb] rounded-full animate-spin" />
+                </div>
+              )}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                key={retryKey}
+                src={src}
+                alt={alt || "Polaroid"}
+                className="w-full h-full object-cover"
+                loading="eager"
+                referrerPolicy="no-referrer"
+                onLoad={() => setStatus("ok")}
+                onError={() => setStatus("error")}
+              />
+            </>
+          )}
         </div>
         {/* Caption space at bottom */}
         <div className="absolute inset-x-[10px] bottom-[10px] h-[18px] bg-transparent" />

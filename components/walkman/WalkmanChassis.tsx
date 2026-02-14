@@ -22,6 +22,8 @@ interface WalkmanChassisProps {
   controls: React.ReactNode
   /** Optional: open playlist view (MENU button) */
   onOpenPlaylist?: () => void
+  /** Optional: flip device (e.g. back panel "Flip to front" button) */
+  onToggleFlip?: () => void
 }
 
 export function WalkmanChassis({
@@ -36,6 +38,7 @@ export function WalkmanChassis({
   screen,
   controls,
   onOpenPlaylist,
+  onToggleFlip,
 }: WalkmanChassisProps) {
   return (
     <div className="relative" style={{ perspective: "1200px" }}>
@@ -259,6 +262,7 @@ export function WalkmanChassis({
             secretMessage={disc.meta.message}
             senderName={disc.meta.sender}
             discLabel={disc.meta.title}
+            onFlipToFront={onToggleFlip}
           />
         </div>
       </motion.div>
