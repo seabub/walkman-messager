@@ -13,7 +13,7 @@ export const caveat = Caveat({
 
 export const metadata: Metadata = {
   title: 'Walkman Messager',
-  description: 'A digital mixtape, a sticky note, and a few memories of our own.',
+  description: 'A digital mixtape and a secret message. Click the red button to flip and see your message on the back.',
 }
 
 export default function RootLayout({
