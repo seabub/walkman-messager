@@ -12,9 +12,8 @@ export const caveat = Caveat({
 })
 
 export const metadata: Metadata = {
-  title: 'Sony Hi-MD Walkman MZ-DH10P',
-  description: 'A hyper-realistic CSS recreation of the iconic Sony Hi-MD Walkman MZ-DH10P portable MiniDisc player',
-  generator: 'v0.app',
+  title: 'Walkman Messager',
+  description: 'A digital mixtape, a sticky note, and a few memories of our own.',
 }
 
 export default function RootLayout({
