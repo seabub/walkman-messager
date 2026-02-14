@@ -78,6 +78,8 @@ function PlatinumButton({
 export function StudioOverlay({ onBurn }: StudioOverlayProps) {
   const [trackInput, setTrackInput] = useState("")
   const [playlist, setPlaylist] = useState<string[]>([])
+  const [photoInput, setPhotoInput] = useState("")
+  const [photos, setPhotos] = useState<string[]>([])
   const [title, setTitle] = useState("")
   const [sender, setSender] = useState("")
   const [message, setMessage] = useState("")
@@ -103,6 +105,25 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
     setPlaylist((prev) => [...prev, videoId])
     setTrackInput("")
   }, [trackInput, playlist])
+
+  const addPhoto = useCallback(() => {
+    setError("")
+    const url = photoInput.trim()
+    if (!url) {
+      setError("Enter an image URL.")
+      return
+    }
+    if (photos.length >= 12) {
+      setError("Maximum 12 photos per desk.")
+      return
+    }
+    if (photos.includes(url)) {
+      setError("Photo already added.")
+      return
+    }
+    setPhotos((prev) => [...prev, url])
+    setPhotoInput("")
+  }, [photoInput, photos])
 
   const removeTrack = useCallback((index: number) => {
     setPlaylist((prev) => prev.filter((_, i) => i !== index))
@@ -132,6 +153,8 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
         setTimeout(() => {
           onBurn({
             playlist,
+            photos,
+            message: message.trim(),
             meta: {
               title: title.trim(),
               sender: sender.trim() || "Anonymous",
@@ -142,7 +165,7 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
       }
       setBurnProgress(Math.min(100, Math.floor(progress)))
     }, 180)
-  }, [playlist, title, sender, message, onBurn])
+  }, [playlist, photos, title, sender, message, onBurn])
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -260,6 +283,62 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
             )}
           </div>
 
+          {/* Photos Section */}
+          <div
+            className="flex flex-col gap-[6px] p-3 pt-4 relative"
+            style={{ border: "1px solid #AAA", background: "#DDDDDD" }}
+          >
+            <span
+              className="absolute -top-[7px] left-[10px] bg-[#DDDDDD] px-[4px] text-[10px] font-bold text-[#333]"
+              style={{ fontFamily: macFont }}
+            >
+              Photos ({photos.length}/12)
+            </span>
+
+            <div className="flex items-center gap-[6px]">
+              <PlatinumInput
+                value={photoInput}
+                onChange={setPhotoInput}
+                placeholder="https://example.com/photo.jpg"
+              />
+              <PlatinumButton small onClick={addPhoto} disabled={isBurning}>
+                Add
+              </PlatinumButton>
+            </div>
+
+            {photos.length > 0 && (
+              <div
+                className="grid grid-cols-2 gap-[4px] max-h-[120px] overflow-y-auto mt-1"
+                style={{
+                  border: "1px solid #BBB",
+                  background: "#FFF",
+                  boxShadow: "inset 1px 1px 2px rgba(0,0,0,0.1)",
+                }}
+              >
+                {photos.map((url, i) => (
+                  <div
+                    key={`${url}-${i}`}
+                    className="flex items-center gap-[4px] px-[4px] py-[3px]"
+                    style={{
+                      background: i % 2 === 0 ? "#FFF" : "#F4F4F4",
+                      borderBottom: "1px solid #EEE",
+                    }}
+                  >
+                    <div
+                      className="w-[26px] h-[22px] flex-shrink-0 bg-[#ddd] border border-[#aaa]"
+                      style={{
+                        boxShadow: "inset 0 1px 2px rgba(0,0,0,0.2)",
+                      }}
+                    />
+                    <span className="text-[9px] text-[#000] flex-1 truncate" style={{ fontFamily: macFont }}>
+                      {url}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           {/* Disc Properties */}
           <div
             className="flex flex-col gap-[8px] p-3 pt-4 relative"
@@ -298,10 +377,15 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
             </span>
             <textarea
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value
+                if (value.length <= 100) {
+                  setMessage(value)
+                }
+              }}
               placeholder="Write something they'll find on the back..."
               rows={3}
-              maxLength={500}
+              maxLength={100}
               className="w-full px-[6px] py-[4px] text-[11px] text-[#000] bg-white outline-none resize-none"
               style={{
                 fontFamily: macFont,
@@ -311,7 +395,7 @@ export function StudioOverlay({ onBurn }: StudioOverlayProps) {
               }}
             />
             <div className="text-right text-[9px] text-[#888]" style={{ fontFamily: macFont }}>
-              {message.length}/500
+              {message.length}/100
             </div>
           </div>
 

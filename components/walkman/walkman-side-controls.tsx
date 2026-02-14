@@ -1,13 +1,11 @@
 "use client"
 
-import { useCallback, useRef } from "react"
-
 interface WalkmanSideControlsProps {
   isLocked?: boolean
   onToggleHold?: () => void
   onVolumeUp?: () => void
   onVolumeDown?: () => void
-  onDownload?: () => void
+  onShareLink?: () => void
   walkmanRef?: React.RefObject<HTMLDivElement | null>
 }
 
@@ -16,17 +14,8 @@ export function WalkmanSideControls({
   onToggleHold,
   onVolumeUp,
   onVolumeDown,
-  onDownload,
+  onShareLink,
 }: WalkmanSideControlsProps) {
-  const downloadingRef = useRef(false)
-
-  const handleDownload = useCallback(async () => {
-    if (downloadingRef.current) return
-    if (onDownload) {
-      onDownload()
-      return
-    }
-  }, [onDownload])
 
   return (
     <div
@@ -70,26 +59,27 @@ export function WalkmanSideControls({
         </button>
       </div>
 
-      {/* DOWNLOAD button */}
+      {/* SHARE LINK button */}
       <div className="relative z-10 flex flex-col items-center gap-[3px]">
         <button
-          className="w-[18px] h-[14px] rounded-[2px] cursor-pointer border-0 active:brightness-75 transition-all"
+          className="w-[18px] h-[14px] rounded-[2px] cursor-pointer border-0 active:brightness-75 transition-all flex items-center justify-center"
           style={{
             background: "linear-gradient(180deg, #3a3a3a 0%, #222 50%, #3a3a3a 100%)",
             boxShadow: "inset 0 1px 2px rgba(0,0,0,0.5), 0 0.5px 1px rgba(255,255,255,0.08), 0 0 0 0.5px rgba(255,255,255,0.05)",
           }}
-          onClick={handleDownload}
-          aria-label="Download snapshot"
+          onClick={onShareLink}
+          aria-label="Copy share link"
         >
-          <svg width="8" height="6" viewBox="0 0 8 6" className="mx-auto" fill="none">
-            <path d="M1 1L4 4.5L7 1" stroke="#999" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+          <svg width="8" height="8" viewBox="0 0 24 24" className="text-[#999]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
           </svg>
         </button>
         <span
           className="text-[4.5px] font-bold tracking-[0.08em] text-[#888] uppercase select-none leading-none"
           style={{ writingMode: "vertical-rl", textOrientation: "mixed", letterSpacing: "0.1em" }}
         >
-          DOWNLOAD
+          SHARE
         </span>
       </div>
 

@@ -5,6 +5,10 @@ import { useEffect, useState, useRef } from "react"
 interface WalkmanScreenProps {
   discLabel?: string
   senderName?: string
+  /** YouTube video title; falls back to discLabel when empty */
+  trackTitle?: string
+  /** YouTube channel/artist; falls back to senderName when empty */
+  trackArtist?: string
   currentTrackIndex?: number
   totalTracks?: number
   isPlaying?: boolean
@@ -14,6 +18,8 @@ interface WalkmanScreenProps {
   showVolume?: boolean
   isLocked?: boolean
   lockFlash?: boolean
+  showPlaylist?: boolean
+  playlistEntries?: Array<{ index: number; videoId: string; title: string }>
 }
 
 function AudioVisualizer({ isPlaying }: { isPlaying: boolean }) {
@@ -54,6 +60,8 @@ function MarqueeText({ text, isPlaying }: { text: string; isPlaying: boolean }) 
 export function WalkmanScreen({
   discLabel = "Blue SKY",
   senderName = "Hi-MD Orchestra",
+  trackTitle,
+  trackArtist,
   currentTrackIndex = 0,
   totalTracks = 1,
   isPlaying = false,
@@ -63,7 +71,11 @@ export function WalkmanScreen({
   showVolume = false,
   isLocked = false,
   lockFlash = false,
+  showPlaylist = false,
+  playlistEntries = [],
 }: WalkmanScreenProps) {
+  const displayTitle = (trackTitle && trackTitle.trim()) ? trackTitle : discLabel
+  const displayArtist = (trackArtist && trackArtist.trim()) ? trackArtist : senderName
   const [lockVisible, setLockVisible] = useState(false)
   const flashRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -105,7 +117,29 @@ export function WalkmanScreen({
       {/* LCD background */}
       <div className="absolute inset-0 bg-[#0a0e14]" />
 
-      {/* Content */}
+      {/* Content: playlist view or now-playing */}
+      {showPlaylist ? (
+        <div className="relative z-[5] flex flex-col h-full p-[6px]">
+          <div className="font-walkman text-[10px] text-[#00ccbb] tracking-[0.12em] mb-[6px] border-b border-[#1a3040] pb-[4px]">
+            PLAYLIST
+          </div>
+          <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0" style={{ scrollbarWidth: "thin" }}>
+            {playlistEntries.map(({ index, title }) => (
+              <div
+                key={index}
+                className={`font-walkman text-[10px] tracking-[0.04em] leading-tight py-[2px] truncate flex items-center gap-[4px] ${
+                  index === currentTrackIndex ? "text-[#00ddcc]" : "text-[#b0c0d0]"
+                }`}
+              >
+                <span className="flex-shrink-0 w-[14px] text-[#00ccbb]">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="truncate">{title}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
       <div className="relative z-[5] flex flex-col h-full p-[6px] gap-[2px]">
         {/* Top row: track info + visualizer */}
         <div className="flex items-start justify-between">
@@ -159,7 +193,7 @@ export function WalkmanScreen({
             <circle cx="5" cy="5" r="1" fill="#00ccbb" />
           </svg>
           <span className="font-walkman text-[12px] text-[#e0e8f0] tracking-[0.05em] leading-none truncate">
-            {discLabel}
+            {displayTitle}
           </span>
         </div>
 
@@ -169,7 +203,7 @@ export function WalkmanScreen({
             <rect x="2" y="2" width="6" height="6" rx="1" stroke="#00ccbb" strokeWidth="1" fill="none" />
           </svg>
           <span className="font-walkman text-[10.5px] text-[#b0c0d0] tracking-[0.04em] leading-none truncate">
-            {senderName}
+            {displayArtist}
           </span>
         </div>
 
@@ -197,6 +231,7 @@ export function WalkmanScreen({
           </div>
         </div>
       </div>
+      )}
 
       {/* Volume overlay */}
       {showVolume && (

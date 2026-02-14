@@ -1,10 +1,15 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { Caveat } from 'next/font/google'
 
 import './globals.css'
 
 const _geist = Geist({ subsets: ['latin'] })
 const _geistMono = Geist_Mono({ subsets: ['latin'] })
+export const caveat = Caveat({
+  subsets: ['latin'],
+  variable: '--font-caveat',
+})
 
 export const metadata: Metadata = {
   title: 'Sony Hi-MD Walkman MZ-DH10P',
@@ -19,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased">{children}</body>
+      <body className={`font-sans antialiased ${caveat.variable}`}>{children}</body>
     </html>
   )
 }
